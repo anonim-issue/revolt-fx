@@ -28,6 +28,7 @@
   "files": [
     "lib/**/*.js",
     "dist/*.js",
+    "lib/**/*.d.ts",
     "README.md",
     "LICENSE"
   ],
