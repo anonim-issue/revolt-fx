@@ -1,39 +1,41 @@
-import babel from 'rollup-plugin-babel'
-import { terser } from 'rollup-plugin-terser'
-import commonjs from '@rollup/plugin-commonjs'
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import esbuild from "rollup-plugin-esbuild";
 
-const babelConfig = {
-    babelrc: false,
-    runtimeHelpers: true,
-    presets: [
-        '@babel/preset-env'
-    ],
-    plugins: [
-        ["@babel/plugin-transform-runtime", {
-            "regenerator": true
-        }]
-    ]
-}
-
-export default {
-    input: './lib/index.js',
-    output: {
-        file: './dist/revoltfx.min.js',
-        format: 'iife',
-        name: 'revolt',
-        globals: {
-            'pixi.js': 'PIXI'
-        },
-    },
-    moduleContext: () => 'window',
-    external: [
-        'pixi.js'
-    ],
-    plugins: [
-        nodeResolve(),
-        commonjs(),
-        babel(babelConfig),
-        terser(),
-    ]
+const format = (path, format) => {
+    return [
+        config(path + "revoltfx.js", format, { minify: false }),
+        config(path + "revoltfx.min.js", format, { minify: true }),
+    ];
 };
+
+const config = (file, format, { minify = false }) => {
+    return {
+        input: './src/index.ts',
+        output: {
+            file: file,
+            format: format,
+            sourcemap: true,
+            name: 'revolt',
+            globals: {
+                'pixi.js': 'PIXI'
+            },
+        },
+        moduleContext: () => 'window',
+        external: [
+            'pixi.js'
+        ],
+        plugins: [
+            nodeResolve(),
+            esbuild({
+                target: "esnext",
+                minify
+            }),
+        ]
+    };
+};
+
+export default [
+    ...format("dist/browser/", "iife"),
+    ...format("dist/cjs/", "cjs"),
+    ...format("dist/esm/", "esm"),
+];
